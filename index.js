@@ -4,7 +4,11 @@ const express = require('express');
 const parse = require('node-html-parser').parse;
 
 const app = express();
-app.use(cors())
+app.use(cors());
+
+app.get('/', (req, res) => {
+	res.redirect('https://cooperbeltra.me');
+});
 
 app.get('/google_certs', async (req, res) => {
 	const public_profile = 'https://www.cloudskillsboost.google/public_profiles/c80b69c8-25d1-4077-8ff8-778e05e8c56a';
