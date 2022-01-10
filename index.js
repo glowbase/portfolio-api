@@ -78,7 +78,4 @@ app.get('/ctflearn_stats', async (req, res) => {
 	res.status(200).json(results);
 });
 
-app.listen(8001, () => {
-	console.clear();
-	console.log('Listening on port 8001');
-});
+app.listen(8080);
