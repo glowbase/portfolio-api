@@ -21,7 +21,7 @@ app.get('/google_certs', async (req, res) => {
 
 	profile_badges_html.forEach(profile_badge => {
 		const badge_name = profile_badge.querySelector('.ql-subhead-1').innerText;
-		const badge_url = profile_badge.querySelector('.badge-image').href;
+		const badge_url = profile_badge.querySelector('.badge-image').getAttribute('href');
 		const badge_earned = profile_badge.querySelector('.ql-body-2').innerText;
 
 		const months = {
@@ -39,10 +39,12 @@ app.get('/google_certs', async (req, res) => {
 			'Dec': 'December'
 		};
 
+		const _temp_formatted = badge_earned.replace('  ', ' ').split(' ');
+
 		badges.push({
 			url: badge_url,
 			name: badge_name,
-			earned: `${months[badge_earned.split(' ')[1]]} ${badge_earned.split(' ')[4]}`
+			earned: `${months[_temp_formatted[1]]} ${_temp_formatted[3]}`
 		});
 	});
 

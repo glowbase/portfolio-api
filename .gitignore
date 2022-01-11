@@ -105,3 +105,6 @@ dist
 
 # Apple FS
 .DS_Store
+
+# Vscode
+.vscode/
