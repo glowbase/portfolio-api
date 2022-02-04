@@ -1,4 +1,5 @@
 const { Datastore } = require('@google-cloud/datastore');
+const apicache = require('apicache');
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -6,7 +7,10 @@ const cors = require('cors');
 const datastore = new Datastore();
 
 const api = express();
+const cache = apicache.middleware;
+
 api.use(cors());
+api.use(cache('30 minutes'));
 
 api.get('/', (req, res) => {
 	res.redirect('https://cooperbeltra.me');
@@ -52,13 +56,19 @@ api.get('/stats/ctflearn', async (req, res) => {
 api.get('/info/skills', async (req, res) =>{
 	const query = await datastore.createQuery('skills').run();
 
-	res.status(200).json(query);
+	res.status(200).json(query[0]);
 });
 
 api.get('/info/certifications', async (req, res) => {
 	const query = await datastore.createQuery('certifications').run();
 
-	res.status(200).json(query);
+	res.status(200).json(query[0]);
+});
+
+api.get('/info/projects', async (req, res) => {
+	const query = await datastore.createQuery('projects').run();
+
+	res.status(200).json(query[0]);
 });
 
 api.listen(8080);
