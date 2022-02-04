@@ -9,9 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/datastore": "^6.6.2",
     "axios": "^0.24.0",
     "cors": "^2.8.5",
-    "express": "^4.17.2",
-    "node-html-parser": "^5.2.0"
+    "express": "^4.17.2"
   }
 }

@@ -1,87 +1,64 @@
+const { Datastore } = require('@google-cloud/datastore');
+const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
-const express = require('express');
-const parse = require('node-html-parser').parse;
 
-const app = express();
-app.use(cors());
+const datastore = new Datastore();
 
-app.get('/', (req, res) => {
+const api = express();
+api.use(cors());
+
+api.get('/', (req, res) => {
 	res.redirect('https://cooperbeltra.me');
 });
 
-app.get('/google_certs', async (req, res) => {
-	const public_profile = 'https://www.cloudskillsboost.google/public_profiles/c80b69c8-25d1-4077-8ff8-778e05e8c56a';
+api.get('/stats/hackthebox', async (req, res) => {
+	
+	// Get auth token
+	const query = await datastore.createQuery('credentials').run();
+	const token = 'Bearer ' + query[0][0].bearer;
 
-	const { data } = await axios.get(public_profile);
-	const root = parse(data);
-
-	const profile_badges_html = root.querySelectorAll('.profile-badge');
-	const badges = [];
-
-	profile_badges_html.forEach(profile_badge => {
-		const badge_name = profile_badge.querySelector('.ql-subhead-1').innerText;
-		const badge_url = profile_badge.querySelector('.badge-image').getAttribute('href');
-		const badge_earned = profile_badge.querySelector('.ql-body-2').innerText;
-
-		const months = {
-			'Jan': 'January',
-			'Feb': 'February',
-			'Mar': 'March',
-			'Apr': 'April',
-			'May': 'May',
-			'Jun': 'June',
-			'Jul': 'July',
-			'Aug': 'August',
-			'Sep': 'September',
-			'Oct': 'October',
-			'Nov': 'November',
-			'Dec': 'December'
-		};
-
-		const _temp_formatted = badge_earned.replace('  ', ' ').split(' ');
-
-		badges.push({
-			url: badge_url,
-			name: badge_name,
-			earned: `${months[_temp_formatted[1]]} ${_temp_formatted[3]}`
-		});
+	// Get full user profile
+	const { data: user_profile } = await axios({
+		method: 'GET',
+		url: `https://www.hackthebox.com/api/v4/user/profile/basic/200316`,
+		headers: { 'Authorization': token }
 	});
 
-	res.status(200).send(JSON.stringify(badges));
+	// Get user country ranking
+	const { data: { data: { rankings } } } = await axios({
+		method: 'GET',
+		url: "https://www.hackthebox.com/api/v4/rankings/country/AU/members",
+		headers: { 'Authorization': token }
+	});
+
+	const user_country_ranking = rankings.filter(user => user.id == '200316');
+
+	res.status(200).json({
+		...user_profile,
+		...user_country_ranking
+	});
 });
 
-app.get('/htb_stats', async (req, res) => {
-	const profile_url = 'https://www.hackthebox.com/badge/200316';
+api.get('/stats/ctflearn', async (req, res) => {
+	const { data } = await axios({
+		method: 'GET',
+		url: "https://ctflearn.com/user/discord/740495415769563157/json"
+	});
 
-	const { data } = await axios.get(profile_url);
-
-	const root = parse(
-		Buffer.from(data.split('"')[1], 'base64').toString('binary')
-	);
-
-	const results = {
-		ranking: parseInt(root.querySelector('.htb_ranking').innerText.replace('Rank: ', '')),
-		rank: root.querySelector('.htb_rank').innerText,
-		points: root.querySelector('.htb_points').innerText,
-		respect: root.querySelector('.htb_respect').innerText,
-		avatar: root.querySelector('img').getAttribute('src').replace('_thumb', '')
-	};
-
-	res.status(200).json(results);
+	res.status(200).json(data);
 });
 
-app.get('/ctflearn_stats', async (req, res) => {
-	const profile_url = 'https://ctflearn.com/user/Glowbase';
+api.get('/info/skills', async (req, res) =>{
+	const query = await datastore.createQuery('skills').run();
 
-	const { data } = await axios.get(profile_url);
-	const root = parse(data);
-
-	const results = {
-		rank: parseInt(root.querySelector('.card').querySelector('.mt-2').innerText.split('&')[0].trim())
-	};
-
-	res.status(200).json(results);
+	res.status(200).json(query);
 });
 
-app.listen(8080);
+api.get('/info/certifications', async (req, res) => {
+	const query = await datastore.createQuery('certificatons').run();
+
+	res.status(200).json(query);
+});
+
+api.listen(8080);
