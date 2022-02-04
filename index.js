@@ -56,7 +56,7 @@ api.get('/info/skills', async (req, res) =>{
 });
 
 api.get('/info/certifications', async (req, res) => {
-	const query = await datastore.createQuery('certificatons').run();
+	const query = await datastore.createQuery('certifications').run();
 
 	res.status(200).json(query);
 });
